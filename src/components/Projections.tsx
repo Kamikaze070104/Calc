@@ -62,11 +62,11 @@ export default function Projections() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('12m');
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      notation: 'compact',
-      maximumFractionDigits: 1
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value);
   };
 

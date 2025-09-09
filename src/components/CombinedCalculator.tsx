@@ -172,19 +172,21 @@ export default function CombinedCalculator() {
   }, [calculatorData]);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
   // Menampilkan angka penuh, bukan notasi kompak
   const formatCurrencyCompact = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
@@ -317,13 +319,19 @@ export default function CombinedCalculator() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">Price per Minute (IDR)</label>
-                  <input
-                    type="number"
-                    value={calculatorData.pricePerMinute}
-                    onChange={(e) => handleInputChange('pricePerMinute', Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
-                  />
+                  <label className="block text-sm font-light text-slate-300 mb-2">Price per Minute</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-400 text-sm">Rp.</span>
+                    </div>
+                    <input
+                      type="number"
+                      value={calculatorData.pricePerMinute}
+                      onChange={(e) => handleInputChange('pricePerMinute', Number(e.target.value))}
+                      className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      placeholder="450"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
@@ -349,23 +357,35 @@ export default function CombinedCalculator() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">One Time Purchase (IDR)</label>
-                  <input
-                    type="number"
-                    value={calculatorData.oneTimePurchase}
-                    onChange={(e) => handleInputChange('oneTimePurchase', Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
-                  />
+                  <label className="block text-sm font-light text-slate-300 mb-2">One Time Purchase</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-400 text-sm">Rp.</span>
+                    </div>
+                    <input
+                      type="number"
+                      value={calculatorData.oneTimePurchase}
+                      onChange={(e) => handleInputChange('oneTimePurchase', Number(e.target.value))}
+                      className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      placeholder="900100"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">Operational Costs (IDR)</label>
-                  <input
-                    type="number"
-                    value={calculatorData.operationalCosts}
-                    onChange={(e) => handleInputChange('operationalCosts', Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
-                  />
+                  <label className="block text-sm font-light text-slate-300 mb-2">Operational Costs</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-400 text-sm">Rp.</span>
+                    </div>
+                    <input
+                      type="number"
+                      value={calculatorData.operationalCosts}
+                      onChange={(e) => handleInputChange('operationalCosts', Number(e.target.value))}
+                      className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      placeholder="900100"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
