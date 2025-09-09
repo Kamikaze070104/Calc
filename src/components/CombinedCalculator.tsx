@@ -311,13 +311,8 @@ export default function CombinedCalculator() {
     const totalInvestment =
       calculatorData.operationalCosts + calculatorData.oneTimePurchase;
 
-    // Hitung cumulative revenue dari bulan-bulan sebelumnya
-    const previousMonthsRevenue = monthlyData
-      .slice(0, monthIndex)
-      .reduce((sum, data) => sum + data.current, 0);
-
     const dailyData = [];
-    let runningCumulative = previousMonthsRevenue; // Mulai dari cumulative bulan sebelumnya
+    let runningCumulative = 0; // Reset cumulative untuk setiap bulan
 
     for (let day = 1; day <= daysInMonth; day++) {
       runningCumulative += dailyRevenue;
@@ -1364,24 +1359,37 @@ export default function CombinedCalculator() {
             </div>
 
             <div className="mb-4 px-3 sm:px-4 py-3 bg-white/5 rounded-xl border border-white/10">
-              <p className="text-xs sm:text-sm font-light text-slate-300 leading-relaxed">
-                Daily revenue breakdown for {selectedMonthData?.month}. Status
-                indicators: <span className="text-red-400">Loss</span> (below
-                threshold),
-                <span className="text-yellow-400"> Break-even</span> (at
-                threshold),
-                <span className="text-green-400"> Profit</span> (above
-                threshold).
-                <br />
-                <span className="text-slate-400 text-xs">
-                  Month 1: Total Investment threshold. Month 2+: Operational
-                  Cost threshold.
-                </span>
-              </p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                <p className="text-xs sm:text-sm font-light text-slate-300 leading-relaxed">
+                  Daily revenue breakdown for {selectedMonthData?.month}. Status
+                  indicators: <span className="text-red-400">Loss</span> (below
+                  threshold),
+                  <span className="text-yellow-400"> Break-even</span> (at
+                  threshold),
+                  <span className="text-green-400"> Profit</span> (above
+                  threshold).
+                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="text-xs sm:text-sm">
+                    <span className="text-slate-400">Threshold:</span>
+                    <span className="text-white font-medium ml-1">
+                      {formatCurrencyCompact(
+                        dailyRevenueData[0]?.breakEvenThreshold || 0
+                      )}
+                    </span>
+                  </div>
+                  <div className="text-xs sm:text-sm">
+                    <span className="text-slate-400">Type:</span>
+                    <span className="text-white font-medium ml-1">
+                      {dailyRevenueData[0]?.thresholdType || "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="overflow-x-auto max-h-[300px] sm:max-h-[400px]">
-              <table className="w-full text-left min-w-[500px] sm:min-w-[700px] lg:min-w-[900px]">
+              <table className="w-full text-left min-w-[400px] sm:min-w-[600px] lg:min-w-[700px]">
                 <thead className="sticky top-0 bg-slate-900/50">
                   <tr className="border-b border-white/10">
                     <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
@@ -1398,9 +1406,6 @@ export default function CombinedCalculator() {
                     </th>
                     <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                       Cumulative
-                    </th>
-                    <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm hidden lg:table-cell">
-                      Threshold
                     </th>
                     <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                       Status
@@ -1427,13 +1432,6 @@ export default function CombinedCalculator() {
                       </td>
                       <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm">
                         {formatCurrencyCompact(dayData.cumulativeRevenue)}
-                      </td>
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm hidden lg:table-cell">
-                        {formatCurrencyCompact(dayData.breakEvenThreshold)}
-                        <br />
-                        <span className="text-slate-400 text-xs">
-                          ({dayData.thresholdType})
-                        </span>
                       </td>
                       <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4">
                         <span
