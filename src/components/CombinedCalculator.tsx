@@ -26,14 +26,14 @@ interface Results {
 
 const predefinedScenarios = [
   {
-    name: "1.5M Calls",
+    name: "300K Calls",
     data: {
       callPerMinute: 3,
-      targetCall: 1500000,
+      targetCall: 300000,
       pricePerMinute: 450,
       hoursPerDay: 12,
-      channels: 208,
-      oneTimePurchase: 445800000,
+      channels: 48,
+      oneTimePurchase: 180000000,
       operationalCosts: 97913280,
       tax: 11,
     },
@@ -52,14 +52,14 @@ const predefinedScenarios = [
     },
   },
   {
-    name: "300K Calls",
+    name: "1.5M Calls",
     data: {
       callPerMinute: 3,
-      targetCall: 300000,
+      targetCall: 1500000,
       pricePerMinute: 450,
       hoursPerDay: 12,
-      channels: 48,
-      oneTimePurchase: 180000000,
+      channels: 208,
+      oneTimePurchase: 445800000,
       operationalCosts: 97913280,
       tax: 11,
     },
@@ -306,6 +306,8 @@ export default function CombinedCalculator() {
   const calculateDailyRevenue = (monthData: any, monthIndex: number) => {
     const daysInMonth = 30; // Asumsi 30 hari per bulan
     const dailyRevenue = monthData.current / daysInMonth;
+    const dailyCalls =
+      calculatorData.targetCall / (results?.completionDays || 1);
     const totalInvestment =
       calculatorData.operationalCosts + calculatorData.oneTimePurchase;
 
@@ -346,6 +348,7 @@ export default function CombinedCalculator() {
       dailyData.push({
         day,
         dailyRevenue: Math.round(dailyRevenue),
+        dailyCalls: Math.round(dailyCalls),
         cumulativeRevenue: Math.round(runningCumulative),
         status,
         totalDayFromStart,
@@ -453,31 +456,35 @@ export default function CombinedCalculator() {
           </div>
         </motion.div>
 
-        <div className="grid xl:grid-cols-3 gap-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12 mb-16">
           {/* Input Panel */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="xl:col-span-1"
+            className="lg:col-span-1"
           >
             <div
-              className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 sticky top-28"
+              className="bg-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 md:p-6 lg:p-8 border border-white/10 sticky top-2 sm:top-4 md:top-8 lg:top-28 max-h-[90vh] sm:max-h-none overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
               style={{
                 boxShadow:
                   "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
               }}
             >
-              <div className="flex items-center space-x-3 mb-6">
-                <CalcIcon weight="light" size={24} className="text-blue-400" />
-                <h3 className="text-xl font-light text-white tracking-tight">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4 md:mb-6">
+                <CalcIcon
+                  weight="light"
+                  size={18}
+                  className="text-blue-400 sm:w-5 sm:h-5 md:w-6 md:h-6"
+                />
+                <h3 className="text-base sm:text-lg md:text-xl font-light text-white tracking-tight">
                   Input Parameters
                 </h3>
               </div>
 
-              <div className="space-y-8">
+              <div className="space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8">
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-light text-slate-300 mb-1 sm:mb-2">
                     Call Duration (minutes)
                   </label>
                   <input
@@ -486,12 +493,12 @@ export default function CombinedCalculator() {
                     onChange={(e) =>
                       handleInputChange("callPerMinute", Number(e.target.value))
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                    className="w-full px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 bg-white/5 border border-white/10 rounded-md sm:rounded-lg md:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl text-xs sm:text-sm md:text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-light text-slate-300 mb-1 sm:mb-2">
                     Target Calls
                   </label>
                   <input
@@ -500,17 +507,19 @@ export default function CombinedCalculator() {
                     onChange={(e) =>
                       handleInputChange("targetCall", Number(e.target.value))
                     }
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                    className="w-full px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 bg-white/5 border border-white/10 rounded-md sm:rounded-lg md:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl text-xs sm:text-sm md:text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-light text-slate-300 mb-1 sm:mb-2">
                     Price per Minute
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-slate-400 text-sm">Rp.</span>
+                    <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 md:pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-400 text-xs sm:text-sm">
+                        Rp.
+                      </span>
                     </div>
                     <input
                       type="text"
@@ -527,15 +536,15 @@ export default function CombinedCalculator() {
                           e.target.value
                         )
                       }
-                      className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      className="w-full pl-8 sm:pl-10 md:pl-12 pr-2 sm:pr-3 md:pr-4 py-1.5 sm:py-2 md:py-3 bg-white/5 border border-white/10 rounded-md sm:rounded-lg md:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl text-xs sm:text-sm md:text-base"
                       placeholder="450"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                   <div>
-                    <label className="block text-sm font-light text-slate-300 mb-2">
+                    <label className="block text-xs sm:text-sm font-light text-slate-300 mb-1 sm:mb-2">
                       Hours/Day
                     </label>
                     <input
@@ -544,12 +553,12 @@ export default function CombinedCalculator() {
                       onChange={(e) =>
                         handleInputChange("hoursPerDay", Number(e.target.value))
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      className="w-full px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 bg-white/5 border border-white/10 rounded-md sm:rounded-lg md:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl text-xs sm:text-sm md:text-base"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-light text-slate-300 mb-2">
+                    <label className="block text-xs sm:text-sm font-light text-slate-300 mb-1 sm:mb-2">
                       Channels
                     </label>
                     <input
@@ -558,18 +567,20 @@ export default function CombinedCalculator() {
                       onChange={(e) =>
                         handleInputChange("channels", Number(e.target.value))
                       }
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      className="w-full px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-3 bg-white/5 border border-white/10 rounded-md sm:rounded-lg md:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl text-xs sm:text-sm md:text-base"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-light text-slate-300 mb-1 sm:mb-2">
                     One Time Purchase
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-slate-400 text-sm">Rp.</span>
+                    <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 md:pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-400 text-xs sm:text-sm">
+                        Rp.
+                      </span>
                     </div>
                     <input
                       type="text"
@@ -586,19 +597,21 @@ export default function CombinedCalculator() {
                           e.target.value
                         )
                       }
-                      className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      className="w-full pl-8 sm:pl-10 md:pl-12 pr-2 sm:pr-3 md:pr-4 py-1.5 sm:py-2 md:py-3 bg-white/5 border border-white/10 rounded-md sm:rounded-lg md:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl text-xs sm:text-sm md:text-base"
                       placeholder="900.100"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-light text-slate-300 mb-1 sm:mb-2">
                     Operational Costs
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-slate-400 text-sm">Rp.</span>
+                    <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 md:pl-4 flex items-center pointer-events-none">
+                      <span className="text-slate-400 text-xs sm:text-sm">
+                        Rp.
+                      </span>
                     </div>
                     <input
                       type="text"
@@ -615,14 +628,14 @@ export default function CombinedCalculator() {
                           e.target.value
                         )
                       }
-                      className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      className="w-full pl-8 sm:pl-10 md:pl-12 pr-2 sm:pr-3 md:pr-4 py-1.5 sm:py-2 md:py-3 bg-white/5 border border-white/10 rounded-md sm:rounded-lg md:rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl text-xs sm:text-sm md:text-base"
                       placeholder="900.100"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-light text-slate-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-light text-slate-300 mb-1 sm:mb-2">
                     Tax Rate (%)
                   </label>
                   <div className="relative">
@@ -652,37 +665,37 @@ export default function CombinedCalculator() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="xl:col-span-2 space-y-12"
+            className="lg:col-span-2 space-y-8 lg:space-y-12"
           >
             {results && (
               <>
                 {/* Current Results */}
                 <div
-                  className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
+                  className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-white/10"
                   style={{
                     boxShadow:
                       "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
                   }}
                 >
-                  <div className="flex items-center space-x-3 mb-6">
+                  <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
                     <TrendUp
                       weight="light"
-                      size={24}
-                      className="text-emerald-400"
+                      size={20}
+                      className="text-emerald-400 sm:w-6 sm:h-6"
                     />
-                    <h3 className="text-xl font-light text-white tracking-tight">
+                    <h3 className="text-lg sm:text-xl font-light text-white tracking-tight">
                       Live Results
                     </h3>
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="p-4 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-2xl border border-blue-400/20 overflow-hidden">
-                      <p className="text-sm font-light text-slate-300 mb-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="p-2 sm:p-3 md:p-4 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-lg sm:rounded-xl md:rounded-2xl border border-blue-400/20 overflow-hidden">
+                      <p className="text-xs sm:text-sm font-light text-slate-300 mb-1">
                         Gross Revenue
                       </p>
                       <p
-                        className="text-xl font-medium text-white truncate"
+                        className="text-lg sm:text-xl font-medium text-white truncate"
                         title={formatCurrencyCompact(results.grossRevenue)}
                       >
                         {formatCurrencyCompact(results.grossRevenue)}
@@ -690,11 +703,11 @@ export default function CombinedCalculator() {
                     </div>
 
                     <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-yellow-500/10 rounded-2xl border border-emerald-400/20 overflow-hidden">
-                      <p className="text-sm font-light text-slate-300 mb-1">
+                      <p className="text-xs sm:text-sm font-light text-slate-300 mb-1">
                         Net Revenue
                       </p>
                       <p
-                        className="text-xl font-medium text-white truncate"
+                        className="text-lg sm:text-xl font-medium text-white truncate"
                         title={formatCurrencyCompact(results.netRevenue)}
                       >
                         {formatCurrencyCompact(results.netRevenue)}
@@ -732,11 +745,11 @@ export default function CombinedCalculator() {
                     </div>
 
                     <div className="p-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-2xl border border-red-400/20 overflow-hidden">
-                      <p className="text-sm font-light text-slate-300 mb-1">
+                      <p className="text-xs sm:text-sm font-light text-slate-300 mb-1">
                         Tax Amount
                       </p>
                       <p
-                        className="text-xl font-medium text-white truncate"
+                        className="text-lg sm:text-xl font-medium text-white truncate"
                         title={formatCurrencyCompact(results.taxAmount)}
                       >
                         {formatCurrencyCompact(results.taxAmount)}
@@ -744,11 +757,11 @@ export default function CombinedCalculator() {
                     </div>
 
                     <div className="p-4 bg-gradient-to-r from-green-500/10 to-teal-500/10 rounded-2xl border border-green-400/20 overflow-hidden">
-                      <p className="text-sm font-light text-slate-300 mb-1">
+                      <p className="text-xs sm:text-sm font-light text-slate-300 mb-1">
                         After Tax Revenue
                       </p>
                       <p
-                        className="text-xl font-medium text-white truncate"
+                        className="text-lg sm:text-xl font-medium text-white truncate"
                         title={formatCurrencyCompact(results.afterTaxRevenue)}
                       >
                         {formatCurrencyCompact(results.afterTaxRevenue)}
@@ -864,14 +877,14 @@ export default function CombinedCalculator() {
                       "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
                   }}
                 >
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       <ChartLine
                         weight="light"
-                        size={24}
-                        className="text-emerald-400"
+                        size={20}
+                        className="text-emerald-400 sm:w-6 sm:h-6"
                       />
-                      <h3 className="text-xl font-light text-white tracking-tight">
+                      <h3 className="text-lg sm:text-xl font-light text-white tracking-tight">
                         Yearly Revenue Projection
                       </h3>
                     </div>
@@ -905,19 +918,19 @@ export default function CombinedCalculator() {
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left min-w-[500px]">
+                    <table className="w-full text-left min-w-[300px] sm:min-w-[400px] lg:min-w-[500px]">
                       <thead>
                         <tr className="border-b border-white/10">
-                          <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                          <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                             Month
                           </th>
-                          <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                          <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                             Current Scenario
                           </th>
-                          <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                          <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                             Status
                           </th>
-                          <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                          <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                             Detail
                           </th>
                         </tr>
@@ -937,10 +950,10 @@ export default function CombinedCalculator() {
                                 isCompletionMonth ? "bg-pink-500/10" : ""
                               }`}
                             >
-                              <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                              <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm">
                                 {data.month}
                               </td>
-                              <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light overflow-hidden text-xs sm:text-sm">
+                              <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light overflow-hidden text-xs sm:text-sm">
                                 <span
                                   className="inline-block max-w-[120px] sm:max-w-[150px] truncate"
                                   title={formatCurrencyCompact(data.current)}
@@ -975,12 +988,12 @@ export default function CombinedCalculator() {
                                   </span>
                                 )}
                               </td>
-                              <td className="py-2 sm:py-3 px-2 sm:px-4 overflow-hidden">
+                              <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 overflow-hidden">
                                 <button
                                   onClick={() =>
                                     handleShowDailyRevenue(data, index)
                                   }
-                                  className="inline-flex items-center px-2 sm:px-3 py-1 rounded-md bg-blue-500/20 text-blue-400 text-xs font-medium hover:bg-blue-500/30 transition-colors"
+                                  className="inline-flex items-center px-1.5 sm:px-2 lg:px-3 py-1 rounded-md bg-blue-500/20 text-blue-400 text-xs font-medium hover:bg-blue-500/30 transition-colors"
                                 >
                                   <ChartLine
                                     weight="light"
@@ -1138,33 +1151,33 @@ export default function CombinedCalculator() {
 
                 {/* Key Metrics */}
                 <div
-                  className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
+                  className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-white/10"
                   style={{
                     boxShadow:
                       "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
                   }}
                 >
-                  <h3 className="text-lg font-light text-white tracking-tight mb-6">
+                  <h3 className="text-base sm:text-lg font-light text-white tracking-tight mb-4 sm:mb-6">
                     Key Metrics
                   </h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-xs sm:text-sm">
                         Total Minutes
                       </span>
                       <span
-                        className="text-white font-medium truncate ml-2"
+                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
                         title={results.totalMinutes.toLocaleString()}
                       >
                         {results.totalMinutes.toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-sm">
+                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-xs sm:text-sm">
                         Daily Capacity
                       </span>
                       <span
-                        className="text-white font-medium truncate ml-2"
+                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
                         title={`${(
                           calculatorData.channels *
                           60 *
@@ -1179,12 +1192,12 @@ export default function CombinedCalculator() {
                         min
                       </span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-sm">
+                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-xs sm:text-sm">
                         Total Investment
                       </span>
                       <span
-                        className="text-white font-medium truncate ml-2"
+                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
                         title={formatCurrencyCompact(
                           calculatorData.operationalCosts +
                             calculatorData.oneTimePurchase
@@ -1196,12 +1209,12 @@ export default function CombinedCalculator() {
                         )}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-sm">
+                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-xs sm:text-sm">
                         Annual Operational Cost
                       </span>
                       <span
-                        className="text-white font-medium truncate ml-2"
+                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
                         title={formatCurrencyCompact(
                           calculatorData.operationalCosts
                         )}
@@ -1368,25 +1381,28 @@ export default function CombinedCalculator() {
             </div>
 
             <div className="overflow-x-auto max-h-[300px] sm:max-h-[400px]">
-              <table className="w-full text-left min-w-[800px]">
+              <table className="w-full text-left min-w-[500px] sm:min-w-[700px] lg:min-w-[900px]">
                 <thead className="sticky top-0 bg-slate-900/50">
                   <tr className="border-b border-white/10">
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                    <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                       Day
                     </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                    <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm hidden sm:table-cell">
                       Day from Start
                     </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                    <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                       Daily Revenue
                     </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                    <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                      Daily Calls
+                    </th>
+                    <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                       Cumulative
                     </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                    <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm hidden lg:table-cell">
                       Threshold
                     </th>
-                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                    <th className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-slate-300 font-light text-xs sm:text-sm">
                       Status
                     </th>
                   </tr>
@@ -1397,26 +1413,29 @@ export default function CombinedCalculator() {
                       key={index}
                       className="border-b border-white/5 hover:bg-white/5 transition-colors"
                     >
-                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm">
                         Day {dayData.day}
                       </td>
-                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm hidden sm:table-cell">
                         Day {dayData.totalDayFromStart}
                       </td>
-                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm">
                         {formatCurrencyCompact(dayData.dailyRevenue)}
                       </td>
-                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm">
+                        {dayData.dailyCalls.toLocaleString()}
+                      </td>
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm">
                         {formatCurrencyCompact(dayData.cumulativeRevenue)}
                       </td>
-                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4 text-white font-light text-xs sm:text-sm hidden lg:table-cell">
                         {formatCurrencyCompact(dayData.breakEvenThreshold)}
                         <br />
                         <span className="text-slate-400 text-xs">
                           ({dayData.thresholdType})
                         </span>
                       </td>
-                      <td className="py-2 sm:py-3 px-2 sm:px-4">
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 lg:px-4">
                         <span
                           className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium ${
                             dayData.status === "loss"
