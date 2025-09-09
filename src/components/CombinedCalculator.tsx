@@ -153,47 +153,24 @@ export default function CombinedCalculator() {
       adjustedMonths.push(months[monthIndex]);
     }
 
-    return adjustedMonths.map((month, index) => {
-      // Bulan pertama: gross revenue - (one time purchase + operational cost)
-      if (index === 0) {
-        // Untuk bulan pertama, kurangi dengan one-time purchase dan operational costs
-        const monthlyOperationalCosts = Math.round(
-          currentData.operationalCosts / completionMonths
-        );
-        const firstMonthRevenue =
-          currentResults.grossRevenue -
-          currentData.oneTimePurchase -
-          monthlyOperationalCosts;
-        // Pastikan nilai tidak negatif
-        const adjustedFirstMonthRevenue = Math.max(firstMonthRevenue, 0);
-        // Hitung pajak dari revenue bulanan
-        const monthlyTax = (adjustedFirstMonthRevenue * currentData.tax) / 100;
-        const afterTaxRevenue = adjustedFirstMonthRevenue - monthlyTax;
-        return {
-          month,
-          current: afterTaxRevenue,
-          projected: Math.round(afterTaxRevenue), // 15% optimistic projection
-          conservative: Math.round(afterTaxRevenue), // 15% conservative projection
-        };
-      } else {
-        // Bulan selanjutnya: gross revenue - operational costs (tanpa one-time purchase)
-        const monthlyOperationalCosts = Math.round(
-          currentData.operationalCosts / completionMonths
-        );
-        const monthlyRevenue =
-          currentResults.grossRevenue - monthlyOperationalCosts;
-        // Pastikan nilai tidak negatif
-        const adjustedMonthlyRevenue = Math.max(monthlyRevenue, 0);
-        // Hitung pajak dari revenue bulanan
-        const monthlyTax = (adjustedMonthlyRevenue * currentData.tax) / 100;
-        const afterTaxRevenue = adjustedMonthlyRevenue - monthlyTax;
-        return {
-          month,
-          current: afterTaxRevenue,
-          projected: Math.round(afterTaxRevenue * 1.15), // 15% optimistic projection
-          conservative: Math.round(afterTaxRevenue * 0.85), // 15% conservative projection
-        };
-      }
+    return adjustedMonths.map((month) => {
+      // Semua bulan menggunakan perhitungan yang sama: gross revenue - operational costs
+      const monthlyOperationalCosts = Math.round(
+        currentData.operationalCosts / completionMonths
+      );
+      const monthlyRevenue =
+        currentResults.grossRevenue - monthlyOperationalCosts;
+      // Pastikan nilai tidak negatif
+      const adjustedMonthlyRevenue = Math.max(monthlyRevenue, 0);
+      // Hitung pajak dari revenue bulanan
+      const monthlyTax = (adjustedMonthlyRevenue * currentData.tax) / 100;
+      const afterTaxRevenue = adjustedMonthlyRevenue - monthlyTax;
+      return {
+        month,
+        current: afterTaxRevenue,
+        projected: Math.round(afterTaxRevenue * 1.15), // 15% optimistic projection
+        conservative: Math.round(afterTaxRevenue * 0.85), // 15% conservative projection
+      };
     });
   };
 
