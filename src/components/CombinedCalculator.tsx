@@ -89,15 +89,31 @@ export default function CombinedCalculator() {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
     return months.map((month, index) => {
-      const growthFactor = 1 + (index * 0.03); // 3% monthly growth
-      const monthlyRevenue = Math.round((currentResults.netRevenue / 12) * growthFactor);
-      
-      return {
-        month,
-        current: monthlyRevenue,
-        projected: Math.round(monthlyRevenue * 1.15), // 15% optimistic projection
-        conservative: Math.round(monthlyRevenue * 0.85) // 15% conservative projection
-      };
+      // Bulan pertama termasuk one-time purchase sebagai expenses
+      if (index === 0) {
+        // Untuk bulan pertama: gross revenue per bulan - one time purchase per bulan
+        const monthlyGrossRevenue = Math.round(currentResults.grossRevenue / 12);
+        const monthlyOneTimePurchase = Math.round(currentData.oneTimePurchase / 12);
+        const firstMonthRevenue = monthlyGrossRevenue - monthlyOneTimePurchase;
+        // Pastikan nilai tidak negatif
+        const adjustedFirstMonthRevenue = Math.max(firstMonthRevenue, 0);
+        return {
+          month,
+          current: adjustedFirstMonthRevenue,
+          projected: Math.round(adjustedFirstMonthRevenue * 1.15), // 15% optimistic projection
+          conservative: Math.round(adjustedFirstMonthRevenue * 0.85) // 15% conservative projection
+        };
+      } else {
+        // Bulan selanjutnya: gross revenue - operational costs (tanpa one-time purchase)
+        const monthlyGrossRevenue = Math.round(currentResults.grossRevenue / 12);
+        const monthlyRevenue = monthlyGrossRevenue - Math.round(currentData.operationalCosts / 12);
+        return {
+          month,
+          current: monthlyRevenue,
+          projected: Math.round(monthlyRevenue * 1.15), // 15% optimistic projection
+          conservative: Math.round(monthlyRevenue * 0.85) // 15% conservative projection
+        };
+      }
     });
   };
 
@@ -138,12 +154,12 @@ export default function CombinedCalculator() {
     }).format(value);
   };
 
+  // Menampilkan angka penuh, bukan notasi kompak
   const formatCurrencyCompact = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
-      notation: 'compact',
-      maximumFractionDigits: 1
+      minimumFractionDigits: 0
     }).format(value);
   };
 
@@ -160,7 +176,7 @@ export default function CombinedCalculator() {
   const assumptions = [
     {
       title: 'Market Stability',
-      description: 'Call demand remains consistent with 3% monthly growth throughout the projection period',
+      description: 'Call demand remains consistent with gross revenue per bulan - one time purchase per bulan di bulan pertama, dan gross revenue - operational costs di bulan-bulan berikutnya',
       impact: 'Medium',
       color: 'blue'
     },
@@ -352,30 +368,30 @@ export default function CombinedCalculator() {
                   </div>
 
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="p-4 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-2xl border border-blue-400/20">
+                    <div className="p-4 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-2xl border border-blue-400/20 overflow-hidden">
                       <p className="text-sm font-light text-slate-300 mb-1">Gross Revenue</p>
-                      <p className="text-xl font-medium text-white">{formatCurrencyCompact(results.grossRevenue)}</p>
+                      <p className="text-xl font-medium text-white truncate" title={formatCurrencyCompact(results.grossRevenue)}>{formatCurrencyCompact(results.grossRevenue)}</p>
                     </div>
 
-                    <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-yellow-500/10 rounded-2xl border border-emerald-400/20">
+                    <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-yellow-500/10 rounded-2xl border border-emerald-400/20 overflow-hidden">
                       <p className="text-sm font-light text-slate-300 mb-1">Net Revenue</p>
-                      <p className="text-xl font-medium text-white">{formatCurrencyCompact(results.netRevenue)}</p>
+                      <p className="text-xl font-medium text-white truncate" title={formatCurrencyCompact(results.netRevenue)}>{formatCurrencyCompact(results.netRevenue)}</p>
                     </div>
 
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
                       <div className="flex items-center space-x-2 mb-2">
                         <Clock weight="light" size={16} className="text-blue-400" />
                         <p className="text-sm font-light text-slate-300">Completion</p>
                       </div>
-                      <p className="text-lg font-medium text-white">{Math.round(results.completionDays)} days</p>
+                      <p className="text-lg font-medium text-white truncate">{Math.round(results.completionDays)} days</p>
                     </div>
 
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
                       <div className="flex items-center space-x-2 mb-2">
                         <Coins weight="light" size={16} className="text-emerald-400" />
                         <p className="text-sm font-light text-slate-300">ROI</p>
                       </div>
-                      <p className="text-lg font-medium text-white">{results.roi.toFixed(1)}%</p>
+                      <p className="text-lg font-medium text-white truncate">{results.roi.toFixed(1)}%</p>
                     </div>
                   </div>
                 </div>
@@ -395,7 +411,7 @@ export default function CombinedCalculator() {
                     <LineChart data={monthlyData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
                       <XAxis dataKey="month" stroke="#94A3B8" fontSize={12} />
-                      <YAxis stroke="#94A3B8" fontSize={12} tickFormatter={formatCurrencyCompact} />
+                      <YAxis stroke="#94A3B8" fontSize={12} tickFormatter={formatCurrencyCompact} width={120} />
                       <Tooltip 
                         formatter={(value: number) => [formatCurrency(value), 'Revenue']}
                         contentStyle={{ 
@@ -411,6 +427,73 @@ export default function CombinedCalculator() {
                       <Line type="monotone" dataKey="conservative" stroke="#F59E0B" strokeWidth={2} strokeDasharray="5 5" name="Conservative" />
                     </LineChart>
                   </ResponsiveContainer>
+                </div>
+
+                {/* Yearly Projection Table */}
+                <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 mb-8"
+                  style={{
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  <div className="flex items-center space-x-3 mb-6">
+                    <ChartLine weight="light" size={24} className="text-emerald-400" />
+                    <h3 className="text-xl font-light text-white tracking-tight">Yearly Revenue Projection</h3>
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="py-3 px-4 text-slate-300 font-light">Month</th>
+                          <th className="py-3 px-4 text-slate-300 font-light">Current Scenario</th>
+                          <th className="py-3 px-4 text-slate-300 font-light">Optimistic</th>
+                          <th className="py-3 px-4 text-slate-300 font-light">Conservative</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {monthlyData.map((data, index) => (
+                          <tr key={index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td className="py-3 px-4 text-white font-light">{data.month}</td>
+                            <td className="py-3 px-4 text-white font-light overflow-hidden">
+                              <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(data.current)}>
+                                {formatCurrencyCompact(data.current)}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-emerald-400 font-light overflow-hidden">
+                              <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(data.projected)}>
+                                {formatCurrencyCompact(data.projected)}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-yellow-400 font-light overflow-hidden">
+                              <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(data.conservative)}>
+                                {formatCurrencyCompact(data.conservative)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-white/5">
+                          <td className="py-3 px-4 text-white font-medium">Total</td>
+                          <td className="py-3 px-4 text-white font-medium overflow-hidden">
+                            <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.current, 0))}>
+                              {formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.current, 0))}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-emerald-400 font-medium overflow-hidden">
+                            <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.projected, 0))}>
+                              {formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.projected, 0))}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-yellow-400 font-medium overflow-hidden">
+                            <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.conservative, 0))}>
+                              {formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.conservative, 0))}
+                            </span>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Comparison Charts */}
@@ -430,7 +513,7 @@ export default function CombinedCalculator() {
                       <BarChart data={comparisonData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
                         <XAxis dataKey="name" stroke="#94A3B8" fontSize={10} />
-                        <YAxis stroke="#94A3B8" fontSize={12} />
+                        <YAxis stroke="#94A3B8" fontSize={12} width={80} />
                         <Tooltip 
                           formatter={(value: number) => [`${value.toFixed(1)}%`, 'ROI']}
                           contentStyle={{ 
@@ -465,7 +548,7 @@ export default function CombinedCalculator() {
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          label={({ payload, percent }) => `${payload.name} ${(percent * 100).toFixed(0)}%`}
                         >
                           {pieData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index]} />
@@ -493,21 +576,21 @@ export default function CombinedCalculator() {
                 >
                   <h3 className="text-lg font-light text-white tracking-tight mb-6">Key Metrics</h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
                       <span className="text-slate-400 font-light text-sm">Total Minutes</span>
-                      <span className="text-white font-medium">{results.totalMinutes.toLocaleString()}</span>
+                      <span className="text-white font-medium truncate ml-2" title={results.totalMinutes.toLocaleString()}>{results.totalMinutes.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
                       <span className="text-slate-400 font-light text-sm">Daily Capacity</span>
-                      <span className="text-white font-medium">{(calculatorData.channels * 60 * calculatorData.hoursPerDay).toLocaleString()} min</span>
+                      <span className="text-white font-medium truncate ml-2" title={`${(calculatorData.channels * 60 * calculatorData.hoursPerDay).toLocaleString()} min`}>{(calculatorData.channels * 60 * calculatorData.hoursPerDay).toLocaleString()} min</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
                       <span className="text-slate-400 font-light text-sm">Total Investment</span>
-                      <span className="text-white font-medium">{formatCurrencyCompact(calculatorData.operationalCosts + calculatorData.oneTimePurchase)}</span>
+                      <span className="text-white font-medium truncate ml-2" title={formatCurrencyCompact(calculatorData.operationalCosts + calculatorData.oneTimePurchase)}>{formatCurrencyCompact(calculatorData.operationalCosts + calculatorData.oneTimePurchase)}</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
                       <span className="text-slate-400 font-light text-sm">Break-even</span>
-                      <span className="text-white font-medium">{Math.round(results.completionDays * 0.7)} days</span>
+                      <span className="text-white font-medium truncate ml-2">{Math.round(results.completionDays * 0.7)} days</span>
                     </div>
                   </div>
                 </div>
@@ -546,10 +629,24 @@ export default function CombinedCalculator() {
                   <div className="mt-10 p-6 bg-blue-500/10 rounded-2xl border border-blue-400/20">
                     <h4 className="text-lg font-medium text-white mb-3">Live Insights</h4>
                     <ul className="space-y-2 text-slate-300 font-light">
-                      <li>• Current scenario offers {results.roi.toFixed(1)}% ROI over {Math.round(results.completionDays)} days</li>
-                      <li>• Monthly revenue projection shows 3% growth trajectory</li>
-                      <li>• Break-even point estimated at {Math.round(results.completionDays * 0.7)} days</li>
-                      <li>• Total investment of {formatCurrencyCompact(calculatorData.operationalCosts + calculatorData.oneTimePurchase)} generates {formatCurrencyCompact(results.netRevenue)} net profit</li>
+                      <li className="flex">
+                        <span className="mr-2">•</span>
+                        <span>Current scenario offers {results.roi.toFixed(1)}% ROI over {Math.round(results.completionDays)} days</span>
+                      </li>
+                      <li className="flex">
+                        <span className="mr-2">•</span>
+                        <span>Monthly revenue projection shows gross revenue - one time purchase per month in first month, and gross revenue - operational costs in subsequent months</span>
+                      </li>
+                      <li className="flex">
+                        <span className="mr-2">•</span>
+                        <span>Break-even point estimated at {Math.round(results.completionDays * 0.7)} days</span>
+                      </li>
+                      <li className="flex">
+                        <span className="mr-2">•</span>
+                        <span className="truncate" title={`Total investment of ${formatCurrencyCompact(calculatorData.operationalCosts + calculatorData.oneTimePurchase)} generates ${formatCurrencyCompact(results.netRevenue)} net profit`}>
+                          Total investment of {formatCurrencyCompact(calculatorData.operationalCosts + calculatorData.oneTimePurchase)} generates {formatCurrencyCompact(results.netRevenue)} net profit
+                        </span>
+                      </li>
                     </ul>
                   </div>
                 </div>
