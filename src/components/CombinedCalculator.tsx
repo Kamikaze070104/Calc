@@ -76,6 +76,9 @@ export default function CombinedCalculator() {
   const [selectedScenario, setSelectedScenario] = useState(0);
   const [monthlyData, setMonthlyData] = useState<any[]>([]);
   const [comparisonData, setComparisonData] = useState<any[]>([]);
+  const [showDailyModal, setShowDailyModal] = useState(false);
+  const [selectedMonthData, setSelectedMonthData] = useState<any>(null);
+  const [dailyRevenueData, setDailyRevenueData] = useState<any[]>([]);
 
   const calculateResults = (data: CalculatorData): Results => {
     const grossRevenue =
@@ -281,6 +284,87 @@ export default function CombinedCalculator() {
   const selectScenario = (index: number) => {
     setSelectedScenario(index);
     setCalculatorData(predefinedScenarios[index].data);
+  };
+
+  // Fungsi untuk menghitung break-even days berdasarkan logika baru
+  const calculateBreakEvenDays = () => {
+    const totalInvestment =
+      calculatorData.operationalCosts + calculatorData.oneTimePurchase;
+    const monthlyRevenue = results?.grossRevenue || 0;
+
+    if (monthlyRevenue === 0) return 0;
+
+    // Hitung berapa hari untuk mencapai total investment
+    const daysToReachTotalInvestment = Math.ceil(
+      totalInvestment / (monthlyRevenue / 30)
+    );
+
+    return daysToReachTotalInvestment;
+  };
+
+  // Fungsi untuk menghitung daily revenue dan status
+  const calculateDailyRevenue = (monthData: any, monthIndex: number) => {
+    const daysInMonth = 30; // Asumsi 30 hari per bulan
+    const dailyRevenue = monthData.current / daysInMonth;
+    const totalInvestment =
+      calculatorData.operationalCosts + calculatorData.oneTimePurchase;
+
+    // Hitung cumulative revenue dari bulan-bulan sebelumnya
+    const previousMonthsRevenue = monthlyData
+      .slice(0, monthIndex)
+      .reduce((sum, data) => sum + data.current, 0);
+
+    const dailyData = [];
+    let runningCumulative = previousMonthsRevenue; // Mulai dari cumulative bulan sebelumnya
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      runningCumulative += dailyRevenue;
+
+      // Hitung hari total dari awal proyek
+      const totalDayFromStart = monthIndex * 30 + day;
+
+      let status = "operating";
+      let breakEvenThreshold = 0;
+
+      if (monthIndex === 0) {
+        // Bulan pertama: cek terhadap total investment (one time purchase + operational cost)
+        breakEvenThreshold = totalInvestment;
+      } else {
+        // Bulan kedua dan selanjutnya: cek terhadap operational cost saja
+        breakEvenThreshold = calculatorData.operationalCosts;
+      }
+
+      // Logika status yang lebih tepat
+      if (runningCumulative < breakEvenThreshold) {
+        status = "loss";
+      } else if (runningCumulative === breakEvenThreshold) {
+        status = "break-even";
+      } else {
+        status = "profit";
+      }
+
+      dailyData.push({
+        day,
+        dailyRevenue: Math.round(dailyRevenue),
+        cumulativeRevenue: Math.round(runningCumulative),
+        status,
+        totalDayFromStart,
+        breakEvenThreshold: Math.round(breakEvenThreshold),
+        monthIndex,
+        thresholdType:
+          monthIndex === 0 ? "Total Investment" : "Operational Cost",
+      });
+    }
+
+    return dailyData;
+  };
+
+  // Handler untuk membuka modal daily revenue
+  const handleShowDailyRevenue = (monthData: any, monthIndex: number) => {
+    const dailyData = calculateDailyRevenue(monthData, monthIndex);
+    setSelectedMonthData(monthData);
+    setDailyRevenueData(dailyData);
+    setShowDailyModal(true);
   };
 
   const assumptions = [
@@ -821,17 +905,20 @@ export default function CombinedCalculator() {
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left min-w-[500px]">
                       <thead>
                         <tr className="border-b border-white/10">
-                          <th className="py-3 px-4 text-slate-300 font-light">
+                          <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
                             Month
                           </th>
-                          <th className="py-3 px-4 text-slate-300 font-light">
+                          <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
                             Current Scenario
                           </th>
-                          <th className="py-3 px-4 text-slate-300 font-light">
+                          <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
                             Status
+                          </th>
+                          <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                            Detail
                           </th>
                         </tr>
                       </thead>
@@ -850,37 +937,61 @@ export default function CombinedCalculator() {
                                 isCompletionMonth ? "bg-pink-500/10" : ""
                               }`}
                             >
-                              <td className="py-3 px-4 text-white font-light">
+                              <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
                                 {data.month}
                               </td>
-                              <td className="py-3 px-4 text-white font-light overflow-hidden">
+                              <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light overflow-hidden text-xs sm:text-sm">
                                 <span
-                                  className="inline-block max-w-[150px] truncate"
+                                  className="inline-block max-w-[120px] sm:max-w-[150px] truncate"
                                   title={formatCurrencyCompact(data.current)}
                                 >
                                   {formatCurrencyCompact(data.current)}
                                 </span>
                               </td>
-                              <td className="py-3 px-4 overflow-hidden">
+                              <td className="py-2 sm:py-3 px-2 sm:px-4 overflow-hidden">
                                 {isCompletionMonth ? (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-pink-500/20 text-pink-400 text-xs font-medium">
+                                  <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md bg-pink-500/20 text-pink-400 text-xs font-medium">
                                     <Clock
                                       weight="light"
-                                      size={12}
-                                      className="mr-1"
+                                      size={10}
+                                      className="mr-1 sm:w-3 sm:h-3"
                                     />
-                                    Completion
+                                    <span className="hidden sm:inline">
+                                      Completion
+                                    </span>
+                                    <span className="sm:hidden">Complete</span>
                                   </span>
                                 ) : index <
                                   Math.ceil(results.completionDays / 30) - 1 ? (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-500/20 text-blue-400 text-xs font-medium">
-                                    In Progress
+                                  <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md bg-blue-500/20 text-blue-400 text-xs font-medium">
+                                    <span className="hidden sm:inline">
+                                      In Progress
+                                    </span>
+                                    <span className="sm:hidden">Active</span>
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-500/20 text-slate-400 text-xs font-medium">
+                                  <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md bg-slate-500/20 text-slate-400 text-xs font-medium">
                                     Future
                                   </span>
                                 )}
+                              </td>
+                              <td className="py-2 sm:py-3 px-2 sm:px-4 overflow-hidden">
+                                <button
+                                  onClick={() =>
+                                    handleShowDailyRevenue(data, index)
+                                  }
+                                  className="inline-flex items-center px-2 sm:px-3 py-1 rounded-md bg-blue-500/20 text-blue-400 text-xs font-medium hover:bg-blue-500/30 transition-colors"
+                                >
+                                  <ChartLine
+                                    weight="light"
+                                    size={10}
+                                    className="mr-1 sm:w-3 sm:h-3"
+                                  />
+                                  <span className="hidden sm:inline">
+                                    View Daily
+                                  </span>
+                                  <span className="sm:hidden">View</span>
+                                </button>
                               </td>
                             </tr>
                           );
@@ -888,12 +999,12 @@ export default function CombinedCalculator() {
                       </tbody>
                       <tfoot>
                         <tr className="bg-white/5">
-                          <td className="py-3 px-4 text-white font-medium">
+                          <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-medium text-xs sm:text-sm">
                             Total
                           </td>
-                          <td className="py-3 px-4 text-white font-medium overflow-hidden">
+                          <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-medium overflow-hidden text-xs sm:text-sm">
                             <span
-                              className="inline-block max-w-[150px] truncate"
+                              className="inline-block max-w-[120px] sm:max-w-[150px] truncate"
                               title={formatCurrencyCompact(
                                 monthlyData.reduce(
                                   (sum, data) => sum + data.current,
@@ -909,7 +1020,12 @@ export default function CombinedCalculator() {
                               )}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-white font-medium overflow-hidden"></td>
+                          <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-medium overflow-hidden text-xs sm:text-sm">
+                            -
+                          </td>
+                          <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-medium text-xs sm:text-sm">
+                            -
+                          </td>
                         </tr>
                       </tfoot>
                     </table>
@@ -1082,14 +1198,6 @@ export default function CombinedCalculator() {
                     </div>
                     <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
                       <span className="text-slate-400 font-light text-sm">
-                        Break-even
-                      </span>
-                      <span className="text-white font-medium truncate ml-2">
-                        {Math.round(results.completionDays * 0.7)} days
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-sm">
                         Annual Operational Cost
                       </span>
                       <span
@@ -1098,7 +1206,9 @@ export default function CombinedCalculator() {
                           calculatorData.operationalCosts
                         )}
                       >
-                        {formatCurrencyCompact(calculatorData.operationalCosts*12)}
+                        {formatCurrencyCompact(
+                          calculatorData.operationalCosts * 12
+                        )}
                       </span>
                     </div>
                   </div>
@@ -1175,7 +1285,7 @@ export default function CombinedCalculator() {
                         <span className="mr-2">•</span>
                         <span>
                           Break-even point estimated at{" "}
-                          {Math.round(results.completionDays * 0.7)} days
+                          {calculateBreakEvenDays()} days
                         </span>
                       </li>
                       <li className="flex">
@@ -1207,6 +1317,130 @@ export default function CombinedCalculator() {
           </motion.div>
         </div>
       </div>
+
+      {/* Daily Revenue Modal */}
+      {showDailyModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-white/10 max-w-4xl w-full max-h-[90vh] sm:max-h-[80vh] overflow-hidden"
+            style={{
+              boxShadow:
+                "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                <ChartLine
+                  weight="light"
+                  size={20}
+                  className="text-blue-400 flex-shrink-0 sm:w-6 sm:h-6"
+                />
+                <h3 className="text-lg sm:text-xl font-light text-white tracking-tight truncate">
+                  Daily Revenue - {selectedMonthData?.month}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowDailyModal(false)}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors flex-shrink-0 ml-2"
+              >
+                <span className="text-white text-lg sm:text-xl">×</span>
+              </button>
+            </div>
+
+            <div className="mb-4 px-3 sm:px-4 py-3 bg-white/5 rounded-xl border border-white/10">
+              <p className="text-xs sm:text-sm font-light text-slate-300 leading-relaxed">
+                Daily revenue breakdown for {selectedMonthData?.month}. Status
+                indicators: <span className="text-red-400">Loss</span> (below
+                threshold),
+                <span className="text-yellow-400"> Break-even</span> (at
+                threshold),
+                <span className="text-green-400"> Profit</span> (above
+                threshold).
+                <br />
+                <span className="text-slate-400 text-xs">
+                  Month 1: Total Investment threshold. Month 2+: Operational
+                  Cost threshold.
+                </span>
+              </p>
+            </div>
+
+            <div className="overflow-x-auto max-h-[300px] sm:max-h-[400px]">
+              <table className="w-full text-left min-w-[800px]">
+                <thead className="sticky top-0 bg-slate-900/50">
+                  <tr className="border-b border-white/10">
+                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                      Day
+                    </th>
+                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                      Day from Start
+                    </th>
+                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                      Daily Revenue
+                    </th>
+                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                      Cumulative
+                    </th>
+                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                      Threshold
+                    </th>
+                    <th className="py-2 sm:py-3 px-2 sm:px-4 text-slate-300 font-light text-xs sm:text-sm">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyRevenueData.map((dayData, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                    >
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                        Day {dayData.day}
+                      </td>
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                        Day {dayData.totalDayFromStart}
+                      </td>
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                        {formatCurrencyCompact(dayData.dailyRevenue)}
+                      </td>
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                        {formatCurrencyCompact(dayData.cumulativeRevenue)}
+                      </td>
+                      <td className="py-2 sm:py-3 px-2 sm:px-4 text-white font-light text-xs sm:text-sm">
+                        {formatCurrencyCompact(dayData.breakEvenThreshold)}
+                        <br />
+                        <span className="text-slate-400 text-xs">
+                          ({dayData.thresholdType})
+                        </span>
+                      </td>
+                      <td className="py-2 sm:py-3 px-2 sm:px-4">
+                        <span
+                          className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium ${
+                            dayData.status === "loss"
+                              ? "bg-red-500/20 text-red-400"
+                              : dayData.status === "break-even"
+                              ? "bg-yellow-500/20 text-yellow-400"
+                              : "bg-green-500/20 text-green-400"
+                          }`}
+                        >
+                          {dayData.status === "loss"
+                            ? "Loss"
+                            : dayData.status === "break-even"
+                            ? "Break-even"
+                            : "Profit"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
