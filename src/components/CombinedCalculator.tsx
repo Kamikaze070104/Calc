@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
 import { Calculator as CalcIcon, TrendUp, Clock, Coins, ChartLine, Target, Lightbulb } from '@phosphor-icons/react';
 
 interface CalculatorData {
@@ -71,10 +71,20 @@ export default function CombinedCalculator() {
 
   const calculateResults = (data: CalculatorData): Results => {
     const grossRevenue = data.callPerMinute * data.targetCall * data.pricePerMinute;
-    const netRevenue = grossRevenue - data.operationalCosts - data.oneTimePurchase;
+    
+    // Menghitung total minutes dan completion days
     const totalMinutes = data.callPerMinute * data.targetCall;
     const completionDays = totalMinutes / (data.channels * 60 * data.hoursPerDay);
-    const roi = (netRevenue / (data.operationalCosts + data.oneTimePurchase)) * 100;
+    
+    // Menyesuaikan operational costs berdasarkan completion days
+    // Operational costs dihitung berdasarkan berapa bulan yang dibutuhkan untuk menyelesaikan proyek
+    const completionMonths = Math.ceil(completionDays / 30);
+    const adjustedOperationalCosts = (data.operationalCosts / 12) * completionMonths;
+    
+    // Net revenue disesuaikan dengan completion days
+    const netRevenue = grossRevenue - adjustedOperationalCosts - data.oneTimePurchase;
+    
+    const roi = (netRevenue / (adjustedOperationalCosts + data.oneTimePurchase)) * 100;
 
     return {
       grossRevenue,
@@ -88,30 +98,45 @@ export default function CombinedCalculator() {
   const generateMonthlyProjections = (currentData: CalculatorData, currentResults: Results) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
-    return months.map((month, index) => {
-      // Bulan pertama termasuk one-time purchase sebagai expenses
+    // Mendapatkan bulan saat ini sebagai titik awal
+    const currentDate = new Date();
+    const currentMonthIndex = currentDate.getMonth();
+    
+    // Menghitung jumlah bulan yang diperlukan berdasarkan completion days
+    const completionMonths = Math.ceil(currentResults.completionDays / 30);
+    
+    // Membuat array bulan untuk satu tahun penuh
+    const adjustedMonths = [];
+    for (let i = 0; i < 12; i++) {
+      const monthIndex = (currentMonthIndex + i) % 12;
+      adjustedMonths.push(months[monthIndex]);
+    }
+    
+    return adjustedMonths.map((month, index) => {
+      // Bulan pertama: gross revenue - (one time purchase + operational cost)
       if (index === 0) {
-        // Untuk bulan pertama: gross revenue per bulan - one time purchase per bulan
-        const monthlyGrossRevenue = Math.round(currentResults.grossRevenue / 12);
-        const monthlyOneTimePurchase = Math.round(currentData.oneTimePurchase / 12);
-        const firstMonthRevenue = monthlyGrossRevenue - monthlyOneTimePurchase;
+        // Untuk bulan pertama, kurangi dengan one-time purchase dan operational costs
+        const monthlyOperationalCosts = Math.round(currentData.operationalCosts / completionMonths);
+        const firstMonthRevenue = currentResults.grossRevenue - currentData.oneTimePurchase - monthlyOperationalCosts;
         // Pastikan nilai tidak negatif
         const adjustedFirstMonthRevenue = Math.max(firstMonthRevenue, 0);
         return {
           month,
           current: adjustedFirstMonthRevenue,
-          projected: Math.round(adjustedFirstMonthRevenue * 1.15), // 15% optimistic projection
-          conservative: Math.round(adjustedFirstMonthRevenue * 0.85) // 15% conservative projection
+          projected: Math.round(adjustedFirstMonthRevenue), // 15% optimistic projection
+          conservative: Math.round(adjustedFirstMonthRevenue) // 15% conservative projection
         };
       } else {
         // Bulan selanjutnya: gross revenue - operational costs (tanpa one-time purchase)
-        const monthlyGrossRevenue = Math.round(currentResults.grossRevenue / 12);
-        const monthlyRevenue = monthlyGrossRevenue - Math.round(currentData.operationalCosts / 12);
+        const monthlyOperationalCosts = Math.round(currentData.operationalCosts / completionMonths);
+        const monthlyRevenue = currentResults.grossRevenue - monthlyOperationalCosts;
+        // Pastikan nilai tidak negatif
+        const adjustedMonthlyRevenue = Math.max(monthlyRevenue, 0);
         return {
           month,
-          current: monthlyRevenue,
-          projected: Math.round(monthlyRevenue * 1.15), // 15% optimistic projection
-          conservative: Math.round(monthlyRevenue * 0.85) // 15% conservative projection
+          current: adjustedMonthlyRevenue,
+          projected: Math.round(adjustedMonthlyRevenue * 1.15), // 15% optimistic projection
+          conservative: Math.round(adjustedMonthlyRevenue * 0.85) // 15% conservative projection
         };
       }
     });
@@ -402,9 +427,21 @@ export default function CombinedCalculator() {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                   }}
                 >
-                  <div className="flex items-center space-x-3 mb-6">
-                    <ChartLine weight="light" size={24} className="text-blue-400" />
-                    <h3 className="text-xl font-light text-white tracking-tight">Monthly Revenue Projection</h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <ChartLine weight="light" size={24} className="text-blue-400" />
+                      <h3 className="text-xl font-light text-white tracking-tight">Monthly Revenue Projection</h3>
+                    </div>
+                    <div className="flex items-center space-x-2 px-3 py-1.5 bg-blue-500/20 rounded-lg border border-blue-400/30">
+                      <Clock weight="light" size={16} className="text-blue-400" />
+                      <span className="text-sm font-light text-white">Completion: {Math.round(results.completionDays)} days</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4 px-4 py-3 bg-white/5 rounded-xl border border-white/10">
+                    <p className="text-sm font-light text-slate-300">
+                      Proyeksi dimulai dari bulan {monthlyData[0]?.month} dan menampilkan satu tahun penuh. Bulan pertama mengurangi gross revenue dengan one-time purchase dan operational costs, bulan berikutnya hanya mengurangi operational costs.
+                    </p>
                   </div>
                   
                   <ResponsiveContainer width="100%" height={300}>
@@ -423,8 +460,14 @@ export default function CombinedCalculator() {
                       />
                       <Legend />
                       <Line type="monotone" dataKey="current" stroke="#3B82F6" strokeWidth={3} name="Current Scenario" />
-                      <Line type="monotone" dataKey="projected" stroke="#10B981" strokeWidth={2} strokeDasharray="5 5" name="Optimistic" />
-                      <Line type="monotone" dataKey="conservative" stroke="#F59E0B" strokeWidth={2} strokeDasharray="5 5" name="Conservative" />
+                      {/* Reference Line untuk menandai completion days */}
+                      <ReferenceLine x={monthlyData[Math.min(Math.ceil(results.completionDays / 30) - 1, monthlyData.length - 1)]?.month} 
+                        stroke="#EC4899" strokeWidth={2} strokeDasharray="3 3" label={{
+                          value: 'Completion',
+                          fill: '#EC4899',
+                          fontSize: 12,
+                          position: 'insideTopRight'
+                        }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -435,9 +478,24 @@ export default function CombinedCalculator() {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                   }}
                 >
-                  <div className="flex items-center space-x-3 mb-6">
-                    <ChartLine weight="light" size={24} className="text-emerald-400" />
-                    <h3 className="text-xl font-light text-white tracking-tight">Yearly Revenue Projection</h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <ChartLine weight="light" size={24} className="text-emerald-400" />
+                      <h3 className="text-xl font-light text-white tracking-tight">Yearly Revenue Projection</h3>
+                    </div>
+                    <div className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-500/20 rounded-lg border border-emerald-400/30">
+                      <Target weight="light" size={16} className="text-emerald-400" />
+                      <span className="text-sm font-light text-white">Total: {formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.current, 0))}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4 px-4 py-3 bg-white/5 rounded-xl border border-white/10">
+                    <p className="text-sm font-light text-slate-300">
+                      Proyeksi pendapatan tahunan untuk 12 bulan mulai dari {monthlyData[0]?.month}.
+                      Bulan pertama: gross revenue - (one time purchase + operational costs).
+                      Bulan berikutnya: gross revenue - operational costs.
+                      Completion days: {Math.round(results.completionDays)} hari ({Math.ceil(results.completionDays / 30)} bulan).
+                    </p>
                   </div>
                   
                   <div className="overflow-x-auto">
@@ -446,31 +504,39 @@ export default function CombinedCalculator() {
                         <tr className="border-b border-white/10">
                           <th className="py-3 px-4 text-slate-300 font-light">Month</th>
                           <th className="py-3 px-4 text-slate-300 font-light">Current Scenario</th>
-                          <th className="py-3 px-4 text-slate-300 font-light">Optimistic</th>
-                          <th className="py-3 px-4 text-slate-300 font-light">Conservative</th>
+                          <th className="py-3 px-4 text-slate-300 font-light">Status</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {monthlyData.map((data, index) => (
-                          <tr key={index} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                            <td className="py-3 px-4 text-white font-light">{data.month}</td>
-                            <td className="py-3 px-4 text-white font-light overflow-hidden">
-                              <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(data.current)}>
-                                {formatCurrencyCompact(data.current)}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-emerald-400 font-light overflow-hidden">
-                              <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(data.projected)}>
-                                {formatCurrencyCompact(data.projected)}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-yellow-400 font-light overflow-hidden">
-                              <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(data.conservative)}>
-                                {formatCurrencyCompact(data.conservative)}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
+                        {monthlyData.map((data, index) => {
+                          const isCompletionMonth = index === Math.min(Math.ceil(results.completionDays / 30) - 1, monthlyData.length - 1);
+                          return (
+                            <tr key={index} className={`border-b border-white/5 hover:bg-white/5 transition-colors ${isCompletionMonth ? 'bg-pink-500/10' : ''}`}>
+                              <td className="py-3 px-4 text-white font-light">{data.month}</td>
+                              <td className="py-3 px-4 text-white font-light overflow-hidden">
+                                <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(data.current)}>
+                                  {formatCurrencyCompact(data.current)}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 overflow-hidden">
+                                {isCompletionMonth ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-pink-500/20 text-pink-400 text-xs font-medium">
+                                    <Clock weight="light" size={12} className="mr-1" />
+                                    Completion
+                                  </span>
+                                ) : index < Math.ceil(results.completionDays / 30) - 1 ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-500/20 text-blue-400 text-xs font-medium">
+                                    In Progress
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-500/20 text-slate-400 text-xs font-medium">
+                                    Future
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                       <tfoot>
                         <tr className="bg-white/5">
@@ -480,16 +546,7 @@ export default function CombinedCalculator() {
                               {formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.current, 0))}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-emerald-400 font-medium overflow-hidden">
-                            <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.projected, 0))}>
-                              {formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.projected, 0))}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-yellow-400 font-medium overflow-hidden">
-                            <span className="inline-block max-w-[150px] truncate" title={formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.conservative, 0))}>
-                              {formatCurrencyCompact(monthlyData.reduce((sum, data) => sum + data.conservative, 0))}
-                            </span>
-                          </td>
+                          <td className="py-3 px-4 text-white font-medium overflow-hidden"></td>
                         </tr>
                       </tfoot>
                     </table>
