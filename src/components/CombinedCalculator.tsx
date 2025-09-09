@@ -11,6 +11,7 @@ interface CalculatorData {
   channels: number;
   oneTimePurchase: number;
   operationalCosts: number;
+  tax: number;
 }
 
 interface Results {
@@ -19,11 +20,13 @@ interface Results {
   totalMinutes: number;
   completionDays: number;
   roi: number;
+  taxAmount: number;
+  afterTaxRevenue: number;
 }
 
 const predefinedScenarios = [
   {
-    name: '1.5M Calls',
+    name: "1.5M Calls",
     data: {
       callPerMinute: 3,
       targetCall: 1500000,
@@ -31,36 +34,39 @@ const predefinedScenarios = [
       hoursPerDay: 12,
       channels: 208,
       oneTimePurchase: 445800000,
-      operationalCosts: 194826560
-    }
+      operationalCosts: 97913280,
+      tax: 11,
+    },
   },
   {
-    name: '500K Calls',
+    name: "500K Calls",
     data: {
       callPerMinute: 3,
       targetCall: 500000,
       pricePerMinute: 450,
       hoursPerDay: 12,
       channels: 72,
-      oneTimePurchase: 219700000,
-      operationalCosts: 194826560
-    }
+      oneTimePurchase: 220000000,
+      operationalCosts: 97913280,
+      tax: 11,
+    },
   },
   {
-    name: '300K Calls',
+    name: "300K Calls",
     data: {
       callPerMinute: 3,
       targetCall: 300000,
       pricePerMinute: 450,
       hoursPerDay: 12,
-      channels: 32,
-      oneTimePurchase: 179800000,
-      operationalCosts: 194826560
-    }
-  }
+      channels: 48,
+      oneTimePurchase: 180000000,
+      operationalCosts: 97913280,
+      tax: 11,
+    },
+  },
 ];
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B'];
+const COLORS = ["#3B82F6", "#10B981", "#F59E0B"];
 
 export default function CombinedCalculator() {
   const [calculatorData, setCalculatorData] = useState<CalculatorData>(
@@ -90,8 +96,15 @@ export default function CombinedCalculator() {
     const netRevenue =
       grossRevenue - adjustedOperationalCosts - data.oneTimePurchase;
 
+    // Menghitung pajak dari net revenue
+    const taxAmount = (netRevenue * data.tax) / 100;
+
+    // Revenue setelah pajak
+    const afterTaxRevenue = netRevenue - taxAmount;
+
     const roi =
-      (netRevenue / (adjustedOperationalCosts + data.oneTimePurchase)) * 100;
+      (afterTaxRevenue / (adjustedOperationalCosts + data.oneTimePurchase)) *
+      100;
 
     return {
       grossRevenue,
@@ -99,6 +112,8 @@ export default function CombinedCalculator() {
       totalMinutes,
       completionDays,
       roi,
+      taxAmount,
+      afterTaxRevenue,
     };
   };
 
@@ -148,11 +163,14 @@ export default function CombinedCalculator() {
           monthlyOperationalCosts;
         // Pastikan nilai tidak negatif
         const adjustedFirstMonthRevenue = Math.max(firstMonthRevenue, 0);
+        // Hitung pajak dari revenue bulanan
+        const monthlyTax = (adjustedFirstMonthRevenue * currentData.tax) / 100;
+        const afterTaxRevenue = adjustedFirstMonthRevenue - monthlyTax;
         return {
           month,
-          current: adjustedFirstMonthRevenue,
-          projected: Math.round(adjustedFirstMonthRevenue), // 15% optimistic projection
-          conservative: Math.round(adjustedFirstMonthRevenue), // 15% conservative projection
+          current: afterTaxRevenue,
+          projected: Math.round(afterTaxRevenue), // 15% optimistic projection
+          conservative: Math.round(afterTaxRevenue), // 15% conservative projection
         };
       } else {
         // Bulan selanjutnya: gross revenue - operational costs (tanpa one-time purchase)
@@ -163,11 +181,14 @@ export default function CombinedCalculator() {
           currentResults.grossRevenue - monthlyOperationalCosts;
         // Pastikan nilai tidak negatif
         const adjustedMonthlyRevenue = Math.max(monthlyRevenue, 0);
+        // Hitung pajak dari revenue bulanan
+        const monthlyTax = (adjustedMonthlyRevenue * currentData.tax) / 100;
+        const afterTaxRevenue = adjustedMonthlyRevenue - monthlyTax;
         return {
           month,
-          current: adjustedMonthlyRevenue,
-          projected: Math.round(adjustedMonthlyRevenue * 1.15), // 15% optimistic projection
-          conservative: Math.round(adjustedMonthlyRevenue * 0.85), // 15% conservative projection
+          current: afterTaxRevenue,
+          projected: Math.round(afterTaxRevenue * 1.15), // 15% optimistic projection
+          conservative: Math.round(afterTaxRevenue * 0.85), // 15% conservative projection
         };
       }
     });
@@ -181,7 +202,7 @@ export default function CombinedCalculator() {
       {
         name: "Current Scenario",
         grossRevenue: currentResults.grossRevenue,
-        netRevenue: currentResults.netRevenue,
+        netRevenue: currentResults.afterTaxRevenue,
         roi: currentResults.roi,
         completionDays: currentResults.completionDays,
       },
@@ -190,7 +211,7 @@ export default function CombinedCalculator() {
         return {
           name: scenario.name,
           grossRevenue: scenarioResults.grossRevenue,
-          netRevenue: scenarioResults.netRevenue,
+          netRevenue: scenarioResults.afterTaxRevenue,
           roi: scenarioResults.roi,
           completionDays: scenarioResults.completionDays,
         };
@@ -515,6 +536,29 @@ export default function CombinedCalculator() {
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-light text-slate-300 mb-2">
+                    Tax Rate (%)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                      <span className="text-slate-400 text-sm">%</span>
+                    </div>
+                    <input
+                      type="number"
+                      value={calculatorData.tax}
+                      onChange={(e) =>
+                        handleInputChange("tax", Number(e.target.value))
+                      }
+                      className="w-full pl-4 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent backdrop-blur-xl"
+                      placeholder="11"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -548,7 +592,7 @@ export default function CombinedCalculator() {
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="p-4 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-2xl border border-blue-400/20 overflow-hidden">
                       <p className="text-sm font-light text-slate-300 mb-1">
                         Gross Revenue
@@ -600,6 +644,30 @@ export default function CombinedCalculator() {
                       </div>
                       <p className="text-lg font-medium text-white truncate">
                         {results.roi.toFixed(1)}%
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-2xl border border-red-400/20 overflow-hidden">
+                      <p className="text-sm font-light text-slate-300 mb-1">
+                        Tax Amount
+                      </p>
+                      <p
+                        className="text-xl font-medium text-white truncate"
+                        title={formatCurrencyCompact(results.taxAmount)}
+                      >
+                        {formatCurrencyCompact(results.taxAmount)}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gradient-to-r from-green-500/10 to-teal-500/10 rounded-2xl border border-green-400/20 overflow-hidden">
+                      <p className="text-sm font-light text-slate-300 mb-1">
+                        After Tax Revenue
+                      </p>
+                      <p
+                        className="text-xl font-medium text-white truncate"
+                        title={formatCurrencyCompact(results.afterTaxRevenue)}
+                      >
+                        {formatCurrencyCompact(results.afterTaxRevenue)}
                       </p>
                     </div>
                   </div>
@@ -1020,6 +1088,19 @@ export default function CombinedCalculator() {
                         {Math.round(results.completionDays * 0.7)} days
                       </span>
                     </div>
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-sm">
+                        Annual Operational Cost
+                      </span>
+                      <span
+                        className="text-white font-medium truncate ml-2"
+                        title={formatCurrencyCompact(
+                          calculatorData.operationalCosts
+                        )}
+                      >
+                        {formatCurrencyCompact(calculatorData.operationalCosts*12)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -1086,7 +1167,8 @@ export default function CombinedCalculator() {
                         <span>
                           Monthly revenue projection shows gross revenue - one
                           time purchase per month in first month, and gross
-                          revenue - operational costs in subsequent months
+                          revenue - operational costs in subsequent months, all
+                          after tax
                         </span>
                       </li>
                       <li className="flex">
@@ -1104,16 +1186,17 @@ export default function CombinedCalculator() {
                             calculatorData.operationalCosts +
                               calculatorData.oneTimePurchase
                           )} generates ${formatCurrencyCompact(
-                            results.netRevenue
-                          )} net profit`}
+                            results.afterTaxRevenue
+                          )} after-tax profit`}
                         >
                           Total investment of{" "}
                           {formatCurrencyCompact(
                             calculatorData.operationalCosts +
                               calculatorData.oneTimePurchase
                           )}{" "}
-                          generates {formatCurrencyCompact(results.netRevenue)}{" "}
-                          net profit
+                          generates{" "}
+                          {formatCurrencyCompact(results.afterTaxRevenue)}{" "}
+                          after-tax profit
                         </span>
                       </li>
                     </ul>
