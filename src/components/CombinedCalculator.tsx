@@ -153,13 +153,22 @@ export default function CombinedCalculator() {
       adjustedMonths.push(months[monthIndex]);
     }
 
-    return adjustedMonths.map((month) => {
-      // Semua bulan menggunakan perhitungan yang sama: gross revenue - operational costs
+    return adjustedMonths.map((month, index) => {
+      // Menghitung operational costs bulanan
       const monthlyOperationalCosts = Math.round(
         currentData.operationalCosts / completionMonths
       );
-      const monthlyRevenue =
-        currentResults.grossRevenue - monthlyOperationalCosts;
+      
+      let monthlyRevenue;
+      
+      // Bulan pertama: gross revenue - (one time purchase + operational costs)
+      if (index === 0) {
+        monthlyRevenue = currentResults.grossRevenue - monthlyOperationalCosts - currentData.oneTimePurchase;
+      } else {
+        // Bulan berikutnya: gross revenue - operational costs
+        monthlyRevenue = currentResults.grossRevenue - monthlyOperationalCosts;
+      }
+      
       // Pastikan nilai tidak negatif
       const adjustedMonthlyRevenue = Math.max(monthlyRevenue, 0);
       // Hitung pajak dari revenue bulanan
@@ -387,7 +396,7 @@ export default function CombinedCalculator() {
           className="text-center mb-12"
         >
           <h2 className="text-4xl md:text-5xl font-light tracking-tight text-white mb-4">
-            Live Revenue{" "}
+            Telemarketing Revenue{" "}
             <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
               Calculator
             </span>
@@ -662,8 +671,8 @@ export default function CombinedCalculator() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="p-2 sm:p-3 md:p-4 bg-gradient-to-r from-blue-500/10 to-emerald-500/10 rounded-lg sm:rounded-xl md:rounded-2xl border border-blue-400/20 overflow-hidden">
-                      <p className="text-xs sm:text-sm font-light text-slate-300 mb-1">
+                    <div className="p-4 bg-gradient-to-br from-blue-500/20 to-blue-600/20 backdrop-blur border border-blue-500/30 rounded-xl overflow-hidden">
+                      <p className="text-blue-300 text-xs sm:text-sm font-medium mb-1">
                         Gross Revenue
                       </p>
                       <p
@@ -674,8 +683,8 @@ export default function CombinedCalculator() {
                       </p>
                     </div>
 
-                    <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-yellow-500/10 rounded-2xl border border-emerald-400/20 overflow-hidden">
-                      <p className="text-xs sm:text-sm font-light text-slate-300 mb-1">
+                    <div className="p-4 bg-gradient-to-br from-green-500/20 to-green-600/20 backdrop-blur border border-green-500/30 rounded-xl overflow-hidden">
+                      <p className="text-green-300 text-xs sm:text-sm font-medium mb-1">
                         Net Revenue
                       </p>
                       <p
@@ -686,14 +695,14 @@ export default function CombinedCalculator() {
                       </p>
                     </div>
 
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+                    <div className="p-4 bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 backdrop-blur border border-indigo-500/30 rounded-xl overflow-hidden">
                       <div className="flex items-center space-x-2 mb-2">
                         <Clock
                           weight="light"
                           size={16}
-                          className="text-blue-400"
+                          className="text-indigo-300"
                         />
-                        <p className="text-sm font-light text-slate-300">
+                        <p className="text-indigo-300 text-xs sm:text-sm font-medium">
                           Completion
                         </p>
                       </div>
@@ -702,22 +711,22 @@ export default function CombinedCalculator() {
                       </p>
                     </div>
 
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+                    <div className="p-4 bg-gradient-to-br from-purple-500/20 to-purple-600/20 backdrop-blur border border-purple-500/30 rounded-xl overflow-hidden">
                       <div className="flex items-center space-x-2 mb-2">
                         <Coins
                           weight="light"
                           size={16}
-                          className="text-emerald-400"
+                          className="text-purple-300"
                         />
-                        <p className="text-sm font-light text-slate-300">ROI</p>
+                        <p className="text-purple-300 text-xs sm:text-sm font-medium">ROI</p>
                       </div>
                       <p className="text-lg font-medium text-white truncate">
                         {results.roi.toFixed(1)}%
                       </p>
                     </div>
 
-                    <div className="p-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-2xl border border-red-400/20 overflow-hidden">
-                      <p className="text-xs sm:text-sm font-light text-slate-300 mb-1">
+                    <div className="p-4 bg-gradient-to-br from-red-500/20 to-red-600/20 backdrop-blur border border-red-500/30 rounded-xl overflow-hidden">
+                      <p className="text-red-300 text-xs sm:text-sm font-medium mb-1">
                         Tax Amount
                       </p>
                       <p
@@ -728,8 +737,8 @@ export default function CombinedCalculator() {
                       </p>
                     </div>
 
-                    <div className="p-4 bg-gradient-to-r from-green-500/10 to-teal-500/10 rounded-2xl border border-green-400/20 overflow-hidden">
-                      <p className="text-xs sm:text-sm font-light text-slate-300 mb-1">
+                    <div className="p-4 bg-gradient-to-br from-green-500/20 to-teal-500/20 backdrop-blur border border-teal-500/30 rounded-xl overflow-hidden">
+                      <p className="text-teal-300 text-xs sm:text-sm font-medium mb-1">
                         After Tax Revenue
                       </p>
                       <p
@@ -1068,136 +1077,13 @@ export default function CombinedCalculator() {
                     </ResponsiveContainer>
                   </div>
 
-                  {/* Revenue Distribution */}
-                  <div
-                    className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
-                    style={{
-                      boxShadow:
-                        "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                    }}
-                  >
-                    <div className="flex items-center space-x-3 mb-6">
-                      <Target
-                        weight="light"
-                        size={24}
-                        className="text-yellow-400"
-                      />
-                      <h3 className="text-xl font-light text-white tracking-tight">
-                        Package Comparison
-                      </h3>
-                    </div>
-
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ payload, percent }) =>
-                            `${payload.name} ${(percent * 100).toFixed(0)}%`
-                          }
-                        >
-                          {pieData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value: number) => [
-                            formatCurrency(value),
-                            "Net Revenue",
-                          ]}
-                          contentStyle={{
-                            backgroundColor: "rgba(15, 23, 42, 0.95)",
-                            border: "1px solid rgba(255, 255, 255, 0.1)",
-                            borderRadius: "12px",
-                            backdropFilter: "blur(10px)",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  {/* Placeholder for additional chart if needed in the future */}
+                  <div className="hidden">
+                    {/* Content removed as requested */}
                   </div>
                 </div>
 
-                {/* Key Metrics */}
-                <div
-                  className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-white/10"
-                  style={{
-                    boxShadow:
-                      "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                  }}
-                >
-                  <h3 className="text-base sm:text-lg font-light text-white tracking-tight mb-4 sm:mb-6">
-                    Key Metrics
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-xs sm:text-sm">
-                        Total Minutes
-                      </span>
-                      <span
-                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
-                        title={results.totalMinutes.toLocaleString()}
-                      >
-                        {results.totalMinutes.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-xs sm:text-sm">
-                        Daily Capacity
-                      </span>
-                      <span
-                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
-                        title={`${(
-                          calculatorData.channels *
-                          60 *
-                          calculatorData.hoursPerDay
-                        ).toLocaleString()} min`}
-                      >
-                        {(
-                          calculatorData.channels *
-                          60 *
-                          calculatorData.hoursPerDay
-                        ).toLocaleString()}{" "}
-                        min
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-xs sm:text-sm">
-                        Total Investment
-                      </span>
-                      <span
-                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
-                        title={formatCurrencyCompact(
-                          calculatorData.operationalCosts +
-                            calculatorData.oneTimePurchase
-                        )}
-                      >
-                        {formatCurrencyCompact(
-                          calculatorData.operationalCosts +
-                            calculatorData.oneTimePurchase
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
-                      <span className="text-slate-400 font-light text-xs sm:text-sm">
-                        Annual Operational Cost
-                      </span>
-                      <span
-                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
-                        title={formatCurrencyCompact(
-                          calculatorData.operationalCosts
-                        )}
-                      >
-                        {formatCurrencyCompact(
-                          calculatorData.operationalCosts * 12
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+
 
                 {/* Business Assumptions */}
                 <div
@@ -1245,7 +1131,79 @@ export default function CombinedCalculator() {
                     ))}
                   </div>
 
-                  <div className="mt-10 p-6 bg-blue-500/10 rounded-2xl border border-blue-400/20">
+                  {/* Key Metrics - Moved from above as requested */}
+                  <div className="mt-10 p-6 bg-white/5 rounded-2xl border border-white/10">
+                    <h4 className="text-lg font-medium text-white mb-3">
+                      Detail Produk & Biaya
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                        <span className="text-slate-400 font-light text-xs sm:text-sm">
+                          Total Minutes
+                        </span>
+                        <span
+                          className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
+                          title={results.totalMinutes.toLocaleString()}
+                        >
+                          {results.totalMinutes.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                        <span className="text-slate-400 font-light text-xs sm:text-sm">
+                          Daily Capacity
+                        </span>
+                        <span
+                          className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
+                          title={`${(
+                            calculatorData.channels *
+                            60 *
+                            calculatorData.hoursPerDay
+                          ).toLocaleString()} min`}
+                        >
+                          {(
+                            calculatorData.channels *
+                            60 *
+                            calculatorData.hoursPerDay
+                          ).toLocaleString()}{" "}
+                          min
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                        <span className="text-slate-400 font-light text-xs sm:text-sm">
+                          Total Investment
+                        </span>
+                        <span
+                          className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
+                          title={formatCurrencyCompact(
+                            calculatorData.operationalCosts +
+                              calculatorData.oneTimePurchase
+                          )}
+                        >
+                          {formatCurrencyCompact(
+                            calculatorData.operationalCosts +
+                              calculatorData.oneTimePurchase
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                        <span className="text-slate-400 font-light text-xs sm:text-sm">
+                          Annual Operational Cost
+                        </span>
+                        <span
+                          className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
+                          title={formatCurrencyCompact(
+                            calculatorData.operationalCosts
+                          )}
+                        >
+                          {formatCurrencyCompact(
+                            calculatorData.operationalCosts * 12
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 p-6 bg-blue-500/10 rounded-2xl border border-blue-400/20">
                     <h4 className="text-lg font-medium text-white mb-3">
                       Live Insights
                     </h4>
