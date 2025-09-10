@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
 import { Calculator as CalcIcon, TrendUp, Clock, Coins, ChartLine, Target, Lightbulb } from '@phosphor-icons/react';
 
 interface CalculatorData {
@@ -26,47 +26,47 @@ interface Results {
 
 const predefinedScenarios = [
   {
-    name: "300K Calls",
+    name: "350K Calls",
     data: {
       callPerMinute: 3,
-      targetCall: 300000,
-      pricePerMinute: 450,
+      targetCall: 350000,
+      pricePerMinute: 500,
       hoursPerDay: 12,
-      channels: 48,
-      oneTimePurchase: 177000000,
-      operationalCosts: 91942620,
+      channels: 50,
+      oneTimePurchase: 185000000,
+      operationalCosts: 95000000,
       tax: 11,
     },
   },
   {
-    name: "500K Calls",
+    name: "600K Calls",
     data: {
       callPerMinute: 3,
-      targetCall: 500000,
-      pricePerMinute: 450,
+      targetCall: 600000,
+      pricePerMinute: 500,
       hoursPerDay: 12,
-      channels: 72,
-      oneTimePurchase: 215500000,
-      operationalCosts: 91942620,
+      channels: 80,
+      oneTimePurchase: 225000000,
+      operationalCosts: 95000000,
       tax: 11,
     },
   },
   {
-    name: "1.5M Calls",
+    name: "1.8M Calls",
     data: {
       callPerMinute: 3,
-      targetCall: 1500000,
-      pricePerMinute: 450,
+      targetCall: 1800000,
+      pricePerMinute: 500,
       hoursPerDay: 12,
-      channels: 208,
-      oneTimePurchase: 433400000,
-      operationalCosts: 91942620,
+      channels: 220,
+      oneTimePurchase: 450000000,
+      operationalCosts: 95000000,
       tax: 11,
     },
   },
 ];
 
-const COLORS = ["#3B82F6", "#10B981", "#F59E0B"];
+// Removed COLORS constant
 
 export default function CombinedCalculator() {
   const [calculatorData, setCalculatorData] = useState<CalculatorData>(
@@ -380,11 +380,7 @@ export default function CombinedCalculator() {
     },
   ];
 
-  const pieData = comparisonData.slice(1).map((item, index) => ({
-    name: item.name,
-    value: item.netRevenue,
-    fill: COLORS[index],
-  }));
+  // Removed pie chart data
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pt-24 pb-12">
@@ -638,6 +634,80 @@ export default function CombinedCalculator() {
                   </div>
                 </div>
               </div>
+
+              {/* Detail Produk & Biaya - Moved to top */}
+              {results && (
+                <div className="mt-8 p-6 bg-white/5 rounded-2xl border border-white/10">
+                  <h4 className="text-lg font-medium text-white mb-3">
+                    Detail Produk & Biaya
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-xs sm:text-sm">
+                        Total Minutes
+                      </span>
+                      <span
+                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
+                        title={results.totalMinutes.toLocaleString()}
+                      >
+                        {results.totalMinutes.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-xs sm:text-sm">
+                        Daily Capacity
+                      </span>
+                      <span
+                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
+                        title={`${(
+                          calculatorData.channels *
+                          60 *
+                          calculatorData.hoursPerDay
+                        ).toLocaleString()} min`}
+                      >
+                        {(
+                          calculatorData.channels *
+                          60 *
+                          calculatorData.hoursPerDay
+                        ).toLocaleString()}{" "}
+                        min
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-xs sm:text-sm">
+                        Total Investment
+                      </span>
+                      <span
+                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
+                        title={formatCurrencyCompact(
+                          calculatorData.operationalCosts +
+                            calculatorData.oneTimePurchase
+                        )}
+                      >
+                        {formatCurrencyCompact(
+                          calculatorData.operationalCosts +
+                            calculatorData.oneTimePurchase
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
+                      <span className="text-slate-400 font-light text-xs sm:text-sm">
+                        Annual Operational Cost
+                      </span>
+                      <span
+                        className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
+                        title={formatCurrencyCompact(
+                          calculatorData.operationalCosts
+                        )}
+                      >
+                        {formatCurrencyCompact(
+                          calculatorData.operationalCosts * 12
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -1131,77 +1201,7 @@ export default function CombinedCalculator() {
                     ))}
                   </div>
 
-                  {/* Key Metrics - Moved from above as requested */}
-                  <div className="mt-10 p-6 bg-white/5 rounded-2xl border border-white/10">
-                    <h4 className="text-lg font-medium text-white mb-3">
-                      Detail Produk & Biaya
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                      <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
-                        <span className="text-slate-400 font-light text-xs sm:text-sm">
-                          Total Minutes
-                        </span>
-                        <span
-                          className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
-                          title={results.totalMinutes.toLocaleString()}
-                        >
-                          {results.totalMinutes.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
-                        <span className="text-slate-400 font-light text-xs sm:text-sm">
-                          Daily Capacity
-                        </span>
-                        <span
-                          className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
-                          title={`${(
-                            calculatorData.channels *
-                            60 *
-                            calculatorData.hoursPerDay
-                          ).toLocaleString()} min`}
-                        >
-                          {(
-                            calculatorData.channels *
-                            60 *
-                            calculatorData.hoursPerDay
-                          ).toLocaleString()}{" "}
-                          min
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
-                        <span className="text-slate-400 font-light text-xs sm:text-sm">
-                          Total Investment
-                        </span>
-                        <span
-                          className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
-                          title={formatCurrencyCompact(
-                            calculatorData.operationalCosts +
-                              calculatorData.oneTimePurchase
-                          )}
-                        >
-                          {formatCurrencyCompact(
-                            calculatorData.operationalCosts +
-                              calculatorData.oneTimePurchase
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl overflow-hidden">
-                        <span className="text-slate-400 font-light text-xs sm:text-sm">
-                          Annual Operational Cost
-                        </span>
-                        <span
-                          className="text-white font-medium truncate ml-1 sm:ml-2 text-sm sm:text-base"
-                          title={formatCurrencyCompact(
-                            calculatorData.operationalCosts
-                          )}
-                        >
-                          {formatCurrencyCompact(
-                            calculatorData.operationalCosts * 12
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Removed from here and moved to top */}
 
                   <div className="mt-6 p-6 bg-blue-500/10 rounded-2xl border border-blue-400/20">
                     <h4 className="text-lg font-medium text-white mb-3">

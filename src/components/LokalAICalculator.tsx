@@ -199,18 +199,18 @@ export default function LokalAICalculator() {
   return (
     <div className="container mx-auto px-4 py-24 max-w-6xl">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-8 text-center"
-      >
-        <h1 className="text-3xl font-light mb-2">
-          <span className="text-emerald-400 font-medium">LokalAI</span> Calculator
-        </h1>
-        <p className="text-slate-400 max-w-2xl mx-auto">
-          Simulasikan proyeksi pendapatan dari instalasi LokalAI dengan berbagai paket dan opsi bundling.
-        </p>
-      </motion.div>
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl md:text-5xl font-light tracking-tight text-white mb-4">
+            LokalAI <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Revenue Calculator</span>
+          </h2>
+          <p className="text-lg text-slate-400 font-light max-w-2xl mx-auto">
+            Real-time revenue calculations with instant projection updates. Analyze your LokalAI's financial performance dynamically.
+          </p>
+        </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Bronze Package */}

@@ -4,7 +4,7 @@ import Header from './components/Header';
 import CombinedCalculator from './components/CombinedCalculator';
 import LiveAudioCalculator from './components/LiveAudioCalculator';
 import LokalAICalculator from './components/LokalAICalculator';
-import InvestorProjection from './components/InvestorProjection';
+import InvestorProjection from './components/Projections';
 import InvestorTelemarketing from './components/InvestorTelemarketing';
 import InvestorLiveAudio from './components/InvestorLiveAudio';
 import InvestorLokalAI from './components/InvestorLokalAI';

@@ -42,7 +42,7 @@ export default function LiveAudioCalculator() {
     basePricePerMinute: 200,
     b2cPackage: {
       depositAmount: 100000,
-      targetUsers: 378,
+      targetUsers: 10000,
       pricePerMinute: 300,
     },
     oneTimePurchase: 0,
@@ -152,10 +152,10 @@ export default function LiveAudioCalculator() {
         className="mb-12 text-center"
       >
         <h2 className="text-4xl md:text-5xl font-light tracking-tight text-white mb-4">
-          B2C Revenue <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Calculator</span>
+          Live Audio <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Calculator</span>
         </h2>
         <p className="text-lg text-slate-400 font-light max-w-2xl mx-auto">
-          Hitung proyeksi pendapatan dan biaya untuk layanan B2C berdasarkan uang deposit dan target user.
+          Real-time revenue calculations with instant projection updates. Analyze your live audio service's financial performance dynamically.
         </p>
       </motion.div>
 

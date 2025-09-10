@@ -58,18 +58,18 @@ export default function InvestorLiveAudio() {
     <div id="investor-liveaudio">
     <div className="container mx-auto px-4 py-12 md:py-24 max-w-7xl">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-8 md:mb-12 text-center"
-      >
-        <h1 className="text-3xl md:text-4xl font-light mb-3">
-          <span className="text-purple-400 font-medium">Live Audio</span> Investor Projection
-        </h1>
-        <p className="text-slate-400 max-w-3xl mx-auto text-sm md:text-base mb-6">
-          Proyeksi pendapatan dan profitabilitas dari solusi Live Audio untuk presentasi investor.
-        </p>
-      </motion.div>
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl md:text-5xl font-light tracking-tight text-white mb-4">
+            Live Audio <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Investor Projection</span>
+          </h2>
+          <p className="text-lg text-slate-400 font-light max-w-2xl mx-auto">
+            Proyeksi pendapatan dan profitabilitas dari solusi Live Audio untuk presentasi investor.
+          </p>
+        </motion.div>
       
       {/* Asumsi Dasar Proyeksi */}
       <motion.div
