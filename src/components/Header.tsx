@@ -105,7 +105,7 @@ export default function Header({ activeSection, onSectionChange }: HeaderProps) 
                 </button>
                 <div className={`absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-slate-800 ring-1 ring-black ring-opacity-5 ${isDropdownOpen ? '' : 'hidden'}`}>
                   <div className="py-1" role="menu" aria-orientation="vertical">
-                    <button
+                    {/* <button
                       className={`block w-full text-left px-4 py-2 text-sm ${activeSection === 'investor' ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-700'}`}
                       onClick={() => onSectionChange('investor')}
                     >
@@ -113,7 +113,7 @@ export default function Header({ activeSection, onSectionChange }: HeaderProps) 
                         <ChartLine weight="light" size={16} className="mr-2" />
                         Combined Projection
                       </span>
-                    </button>
+                    </button> */}
                     <button
                       className={`block w-full text-left px-4 py-2 text-sm ${activeSection === 'investor-telemarketing' ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-700'}`}
                       onClick={() => onSectionChange('investor-telemarketing')}
